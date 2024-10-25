@@ -2,7 +2,7 @@ import React, { useState, useCallback, useMemo } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
-import { createEditor, Editor, Transforms, Element, Node, path } from 'slate'
+import { createEditor, Editor, Transforms, Element, Node, path, range } from 'slate'
 import { Slate, Editable, withReact } from 'slate-react'
 import CustomEditor from './CustomEditor'
 const CodeElement = props => {
@@ -18,8 +18,10 @@ const DefaultElement = props => {
 }
 
 const Leaf = props => {
+  let highlight = props.leaf.highlight;
   return (
     <span
+      className={`${highlight?'highlight':''}`}
       {...props.attributes}
       style={{ fontWeight: props.leaf.bold ? 'bold' : 'normal' }}
     >
@@ -41,6 +43,10 @@ function App() {
           type: 'paragraph',
           children: [{ text: 'A line of text in a paragraph.' }],
         },
+        {
+          type: 'paragraph',
+          children: [{ text: 'A line of text in a paragraph.' }],
+        },
       ],
     []
   )
@@ -57,6 +63,58 @@ function App() {
     console.log('props.leaf', props.leaf)
     return <Leaf {...props} />
   }, [])
+
+  const setRange = (path, anchorOffset, focusOffset) => {
+    return {
+      anchor: { path, offset: anchorOffset },
+      focus: { path, offset: focusOffset },
+      highlight: 'highlight'
+    }
+  }
+  const decorate = ([node, path]) => {
+    // return ranges,通过增加highlightlight属性用于搜索高亮
+    console.log("decorate", node, path);
+    var searchText = 'text';
+    var contentStr = Node.string(editor.children[0]);
+    var contentArr = contentStr.split(searchText);
+    let ranges = [];
+    const nodeLen = Node.string(node).length;
+    let startNum = 0;
+    let endNum = 0;
+
+    if(Node.string(node).length == 0){
+      return [];
+    }
+    for(let k=0; k < path[1]; k++){
+      startNum = Node.string(editor.children[k].length);
+    }
+    endNum = startNum + nodeLen;
+
+    let searchStartNum = 0;
+    let searchEndNum = 0;
+    for(let i=0; i< contentArr.length; i++){
+      searchStartNum = searchEndNum + contentArr[i].length;
+      searchEndNum = searchStartNum + searchText.length;
+
+      if(endNum < searchStartNum){
+        return ranges;
+      }
+      if(startNum >= searchStartNum && endNum <= searchEndNum){
+        ranges = [setRange(path, 0, nodeLen)];
+        return ranges; 
+      }
+      if(searchStartNum < startNum && searchEndNum > startNum && searchEndNum <= endNum){
+        ranges.push(setRange(path, 0, (searchEndNum - startNum)))
+      }
+      if(searchStartNum >= startNum && searchEndNum <= endNum){
+        ranges.push(setRange(path, (searchStartNum - startNum), (searchEndNum - startNum)));
+      }
+      if(searchEndNum > endNum && searchStartNum < endNum){
+        ranges.push(setRange(path, (searchStartNum - startNum), nodeLen))
+      }
+    }
+    return ranges;
+  }
   return (
     <div className='editor-wrap'>
       <Slate 
@@ -133,18 +191,7 @@ function App() {
           </button>
         </div>
         <Editable 
-          decorate={([node, path]) => {
-            // return ranges,通过增加hightlight属性用于搜索高亮
-            console.log("decorate", node, path);
-            let ranges = [];
-            let range = {
-              anchor: { path, offset: 0 },
-              focus: { path, offset: Node.string(node).length - 2 },
-              highlight: 'hight'
-            };
-            ranges.push(range);
-            return ranges;
-          }}
+          decorate={decorate}
           renderElement={renderElement}
           renderLeaf={renderLeaf}
           onKeyDown={event => {
