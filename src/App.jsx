@@ -2,7 +2,7 @@ import React, { useState, useCallback, useMemo } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
-import { createEditor, Editor, Transforms, Element } from 'slate'
+import { createEditor, Editor, Transforms, Element, Node, path } from 'slate'
 import { Slate, Editable, withReact } from 'slate-react'
 import CustomEditor from './CustomEditor'
 const CodeElement = props => {
@@ -29,11 +29,14 @@ const Leaf = props => {
 }
 
 function App() {
-  const [editor] = useState(() => withReact(createEditor()))
+  const [editor] = useState(() => withReact(createEditor()));
+  window.editor = editor;
+  console.log("editor", editor);
+  console.log("window", window);
   const [count, setCount] = useState(0)
   const initialValue = useMemo(
     () =>
-      JSON.parse(localStorage.getItem('content')) || [
+      [
         {
           type: 'paragraph',
           children: [{ text: 'A line of text in a paragraph.' }],
@@ -42,6 +45,7 @@ function App() {
     []
   )
   const renderElement = useCallback(props => {
+    console.log('props.leaf', props.leaf)
     switch (props.element.type) {
       case 'code':
         return <CodeElement {...props} />
@@ -50,6 +54,7 @@ function App() {
     }
   }, [])
   const renderLeaf = useCallback(props => {
+    console.log('props.leaf', props.leaf)
     return <Leaf {...props} />
   }, [])
   return (
@@ -86,8 +91,60 @@ function App() {
           >
             Code Block
           </button>
+          <button
+            onMouseDown={event => {
+              event.preventDefault()
+              Transforms.insertFragment(editor, [{ text: 'insert fragment' }])
+            }}
+          >
+            InsertFragment
+          </button>
+          <button
+            onMouseDown={event => {
+              event.preventDefault()
+              Transforms.insertNodes(editor, [{ text: 'insert nodes' }])
+            }}
+          >
+            InsertNodes
+          </button>
+          <button
+            onMouseDown={event => {
+              event.preventDefault()
+              Transforms.mergeNodes(editor, {at: { path: [1,0], offset: 0 } })
+            }}
+          >
+            mergeNodes
+          </button>
+          <button
+            onMouseDown={event => {
+              event.preventDefault()
+              Transforms.splitNodes(editor, {at: { path: [0,0], offset: 6 } })
+            }}
+          >
+            splitNodes
+          </button>
+          <button
+            onMouseDown={event => {
+              event.preventDefault()
+              console.log(Node.string(editor.children[0]))
+            }}
+          >
+            printNodes
+          </button>
         </div>
         <Editable 
+          decorate={([node, path]) => {
+            // return ranges,通过增加hightlight属性用于搜索高亮
+            console.log("decorate", node, path);
+            let ranges = [];
+            let range = {
+              anchor: { path, offset: 0 },
+              focus: { path, offset: Node.string(node).length - 2 },
+              highlight: 'hight'
+            };
+            ranges.push(range);
+            return ranges;
+          }}
           renderElement={renderElement}
           renderLeaf={renderLeaf}
           onKeyDown={event => {
