@@ -1,0 +1,13 @@
+.tools-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-bottom: 6px;
+    margin-bottom: 6px;
+    /* border-bottom: 1px solid #CCC; */
+
+    i {
+        margin: 0 6px;
+        cursor: pointer;
+    }
+}

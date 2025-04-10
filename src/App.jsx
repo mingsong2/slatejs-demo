@@ -5,6 +5,7 @@ import './App.css'
 import { createEditor, Editor, Transforms, Element, Node, path, range } from 'slate'
 import { Slate, Editable, withReact } from 'slate-react'
 import CustomEditor from './CustomEditor'
+import Tools from './components/tools';
 const CodeElement = props => {
   return (
     <pre {...props.attributes}>
@@ -21,7 +22,7 @@ const Leaf = props => {
   let highlight = props.leaf.highlight;
   return (
     <span
-      className={`${highlight?'highlight':''}`}
+      className={`${highlight ? 'highlight' : ''}`}
       {...props.attributes}
       style={{ fontWeight: props.leaf.bold ? 'bold' : 'normal' }}
     >
@@ -44,7 +45,7 @@ function App() {
           children: [{ text: 'A line of text in a paragraph.' }],
         },
         {
-          type: 'paragraph',
+          type: 'code',
           children: [{ text: 'A line of text in a paragraph.' }],
         },
       ],
@@ -74,7 +75,7 @@ function App() {
   const decorate = ([node, path]) => {
     // return ranges,通过增加highlightlight属性用于搜索高亮
     console.log("decorate", node, path);
-    var searchText = 'text';
+    // var searchText = 'text';
     var contentStr = Node.string(editor.children[0]);
     var contentArr = contentStr.split(searchText);
     let ranges = [];
@@ -82,34 +83,34 @@ function App() {
     let startNum = 0;
     let endNum = 0;
 
-    if(Node.string(node).length == 0){
+    if (Node.string(node).length == 0) {
       return [];
     }
-    for(let k=0; k < path[1]; k++){
+    for (let k = 0; k < path[1]; k++) {
       startNum = Node.string(editor.children[k].length);
     }
     endNum = startNum + nodeLen;
 
     let searchStartNum = 0;
     let searchEndNum = 0;
-    for(let i=0; i< contentArr.length; i++){
+    for (let i = 0; i < contentArr.length; i++) {
       searchStartNum = searchEndNum + contentArr[i].length;
       searchEndNum = searchStartNum + searchText.length;
 
-      if(endNum < searchStartNum){
+      if (endNum < searchStartNum) {
         return ranges;
       }
-      if(startNum >= searchStartNum && endNum <= searchEndNum){
+      if (startNum >= searchStartNum && endNum <= searchEndNum) {
         ranges = [setRange(path, 0, nodeLen)];
-        return ranges; 
+        return ranges;
       }
-      if(searchStartNum < startNum && searchEndNum > startNum && searchEndNum <= endNum){
+      if (searchStartNum < startNum && searchEndNum > startNum && searchEndNum <= endNum) {
         ranges.push(setRange(path, 0, (searchEndNum - startNum)))
       }
-      if(searchStartNum >= startNum && searchEndNum <= endNum){
+      if (searchStartNum >= startNum && searchEndNum <= endNum) {
         ranges.push(setRange(path, (searchStartNum - startNum), (searchEndNum - startNum)));
       }
-      if(searchEndNum > endNum && searchStartNum < endNum){
+      if (searchEndNum > endNum && searchStartNum < endNum) {
         ranges.push(setRange(path, (searchStartNum - startNum), nodeLen))
       }
     }
@@ -117,10 +118,11 @@ function App() {
   }
   return (
     <div className='editor-wrap'>
-      <Slate 
-        editor={editor} 
+      <Slate
+        editor={editor}
         initialValue={initialValue}
         onChange={value => {
+          console.log("editor.operations", editor.operations)
           const isAstChange = editor.operations.some(
             op => 'set_selection' !== op.type
           )
@@ -132,89 +134,34 @@ function App() {
           }
         }}
       >
-        <div>
-          <button
-            onMouseDown={event => {
-              event.preventDefault()
-              CustomEditor.toggleBoldMark(editor)
+        <Tools editor={editor}></Tools>
+        <div class="editor-body">
+          <Editable
+            // decorate={decorate}
+            renderElement={renderElement}
+            renderLeaf={renderLeaf}
+            onKeyDown={event => {
+              if (!event.ctrlKey) {
+                return
+              }
+
+              // Replace the `onKeyDown` logic with our new commands.
+              switch (event.key) {
+                case '`': {
+                  event.preventDefault()
+                  CustomEditor.toggleCodeBlock(editor)
+                  break
+                }
+
+                case 'b': {
+                  event.preventDefault()
+                  CustomEditor.toggleBoldMark(editor)
+                  break
+                }
+              }
             }}
-          >
-            Bold
-          </button>
-          <button
-            onMouseDown={event => {
-              event.preventDefault()
-              CustomEditor.toggleCodeBlock(editor)
-            }}
-          >
-            Code Block
-          </button>
-          <button
-            onMouseDown={event => {
-              event.preventDefault()
-              Transforms.insertFragment(editor, [{ text: 'insert fragment' }])
-            }}
-          >
-            InsertFragment
-          </button>
-          <button
-            onMouseDown={event => {
-              event.preventDefault()
-              Transforms.insertNodes(editor, [{ text: 'insert nodes' }])
-            }}
-          >
-            InsertNodes
-          </button>
-          <button
-            onMouseDown={event => {
-              event.preventDefault()
-              Transforms.mergeNodes(editor, {at: { path: [1,0], offset: 0 } })
-            }}
-          >
-            mergeNodes
-          </button>
-          <button
-            onMouseDown={event => {
-              event.preventDefault()
-              Transforms.splitNodes(editor, {at: { path: [0,0], offset: 6 } })
-            }}
-          >
-            splitNodes
-          </button>
-          <button
-            onMouseDown={event => {
-              event.preventDefault()
-              console.log(Node.string(editor.children[0]))
-            }}
-          >
-            printNodes
-          </button>
+          />
         </div>
-        <Editable 
-          decorate={decorate}
-          renderElement={renderElement}
-          renderLeaf={renderLeaf}
-          onKeyDown={event => {
-            if (!event.ctrlKey) {
-              return
-            }
-  
-            // Replace the `onKeyDown` logic with our new commands.
-            switch (event.key) {
-              case '`': {
-                event.preventDefault()
-                CustomEditor.toggleCodeBlock(editor)
-                break
-              }
-  
-              case 'b': {
-                event.preventDefault()
-                CustomEditor.toggleBoldMark(editor)
-                break
-              }
-            }
-          }}
-        />
       </Slate>
     </div>
   )
