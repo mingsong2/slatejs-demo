@@ -1,12 +1,29 @@
 .tools-wrap {
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
     justify-content: center;
     padding-bottom: 6px;
     margin-bottom: 6px;
+
+    li {
+        margin-top: 12px;
+        list-style: none;
+    }
+
     /* border-bottom: 1px solid #CCC; */
+    .tools-title {
+        font-weight: bold;
+        margin-right: 6px;
+        text-align: left;
+        margin-bottom: 6px;
+
+    }
 
     i {
+        background-color: #EFEFEF;
+        padding: 6px;
+        border-radius: 4px;
         margin: 0 6px;
         cursor: pointer;
     }
