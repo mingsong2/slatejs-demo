@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react'
+import React, { useState, useCallback, useMemo, useEffect } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
@@ -33,17 +33,20 @@ const Leaf = props => {
 }
 
 function App() {
+
   const [editor] = useState(() => witchSlateOt(withReact(createEditor())));
+
+
+
   window.editor = editor;
-  console.log("editor", editor);
-  console.log("window", window);
   const [count, setCount] = useState(0)
-  const initialValue = [
-    {
-      type: 'paragraph',
-      children: [{ text: 'A line of text in a paragraph.' }],
-    }
-  ]
+  // const initialValue = [
+  //   {
+  //     type: 'paragraph',
+  //     children: [{ text: 'A line of text in a paragraph.' }],
+  //   }
+  // ]
+  const initialValue = []
   const renderElement = useCallback(props => {
     switch (props.element.type) {
       case 'code':
@@ -55,6 +58,7 @@ function App() {
   const renderLeaf = useCallback(props => {
     return <Leaf {...props} />
   }, [])
+
 
 
   return (
