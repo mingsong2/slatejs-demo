@@ -33,14 +33,12 @@ const Leaf = props => {
 }
 
 function App() {
+  const [value, setValue] = useState([])
 
   const [editor] = useState(() => witchSlateOt(withReact(createEditor()), setValue));
 
-
-
   window.editor = editor;
-  const [count, setCount] = useState(0)
-  const [value, setValue] = useState([])
+  
   const initialValue = []
   const renderElement = useCallback(props => {
     switch (props.element.type) {

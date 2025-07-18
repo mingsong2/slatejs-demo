@@ -18,7 +18,7 @@ const clientId = uuid();
 export function witchSlateOt(editor, setValue) {
     const { onChange } = editor;
 
-    editor.onChange = (item) => {
+    editor.onChange = (item = { operation: { type: 'set_selection' }}) => {
         onChange();
         if (item.operation?.type !== 'set_selection') {
             try{
@@ -39,13 +39,12 @@ export function witchSlateOt(editor, setValue) {
         editor.onChange();
 
         doc.on('op', (op, options) => {
-            console.log("==op", op);
             if (options === clientId) return;
         
             const ops = Array.isArray(op) ? op : [op];
         
             for (const o of ops) {
-                Transforms.transform(o);
+                Transforms.transform(editor, o);
             }
 
             setValue(editor.children);
