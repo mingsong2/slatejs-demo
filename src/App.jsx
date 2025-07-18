@@ -34,18 +34,13 @@ const Leaf = props => {
 
 function App() {
 
-  const [editor] = useState(() => witchSlateOt(withReact(createEditor())));
+  const [editor] = useState(() => witchSlateOt(withReact(createEditor()), setValue));
 
 
 
   window.editor = editor;
   const [count, setCount] = useState(0)
-  // const initialValue = [
-  //   {
-  //     type: 'paragraph',
-  //     children: [{ text: 'A line of text in a paragraph.' }],
-  //   }
-  // ]
+  const [value, setValue] = useState([])
   const initialValue = []
   const renderElement = useCallback(props => {
     switch (props.element.type) {
@@ -65,6 +60,7 @@ function App() {
     <div className='editor-wrap'>
       <Slate
         editor={editor}
+        value={value}
         initialValue={initialValue}
       >
         <Tools editor={editor}></Tools>

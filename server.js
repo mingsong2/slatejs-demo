@@ -6,11 +6,14 @@ var backend = new ShareDB();
 
 function createDoc(callback) {
   const connection = backend.connect();
-  const doc = connection.get('111', '111');
+  const doc = connection.get('example', 'richText');
   doc.fetch(function (err) {
     if (err) throw err;
     if (doc.type === null) {
-      doc.create({ children: [] }, 'slate-ot-type', callback);
+      doc.create({ children: [{
+        type: 'paragraph',
+        children: [{ text: 'hello world'}]
+      }] }, 'slate-ot-type', callback);
       return;
     }
     callback && callback();
